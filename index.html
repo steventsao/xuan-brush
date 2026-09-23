@@ -1,0 +1,485 @@
+<!doctype html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>html,body{margin:0}</style>
+<title>Xuan Paper Brush</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@600;900&family=Spectral:ital,wght@0,400;0,600;1,400&display=swap">
+<style>
+:root{
+  --desk:#1b1917; --desk-2:#24211e; --desk-3:#302b26; --rule:#3b3530;
+  --paper:#f1ebdd; --text:#e8e0d0; --muted:#8f877b; --cinnabar:#b3261e; --cinnabar-soft:#d4574c;
+  color-scheme:dark;
+}
+html,body{height:100%}
+body{background:var(--desk);color:var(--text);font-family:"Spectral",Georgia,"Times New Roman",serif;overflow:hidden}
+*{box-sizing:border-box}
+.app{height:100%;display:grid;grid-template-columns:232px 1fr;gap:20px;padding-inline:16px;padding-block:16px}
+.rail{display:flex;flex-direction:column;gap:18px;overflow-y:auto;min-height:0;padding-right:4px;scrollbar-width:thin}
+.brand{display:flex;gap:12px;align-items:center;padding-bottom:14px;border-bottom:1px solid var(--rule)}
+.brand .chop{width:42px;height:42px;flex:none;display:grid;place-items:center;background:var(--cinnabar);color:#f6e9e2;font-family:"Ma Shan Zheng","Noto Serif SC",serif;font-size:30px;line-height:1;border-radius:3px;transform:rotate(-3deg)}
+.brand b{display:block;font-weight:600;font-size:17px;letter-spacing:.01em}
+.brand small{display:block;color:var(--muted);font-style:italic;font-size:13px}
+.grp h2{margin:0 0 8px;font-weight:400;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);display:flex;gap:8px;align-items:baseline}
+.grp h2 .zh{font-family:"Ma Shan Zheng","Noto Serif SC",serif;font-size:19px;letter-spacing:0;color:var(--text);text-transform:none}
+.seg{display:flex;gap:4px}
+.seg button,.act{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:1px;padding:7px 4px 6px;background:transparent;color:var(--text);border:1px solid var(--rule);border-radius:4px;cursor:pointer;font:inherit}
+.seg button .g,.act .g{font-family:"Ma Shan Zheng","Noto Serif SC",serif;font-size:22px;line-height:1.05}
+.seg button .e,.act .e{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.seg button:hover,.act:hover{background:var(--desk-2)}
+.seg button[aria-pressed="true"]{background:var(--desk-3);border-color:var(--cinnabar);box-shadow:inset 0 -2px 0 var(--cinnabar)}
+.seg button[aria-pressed="true"] .e{color:var(--cinnabar-soft)}
+button:focus-visible,input:focus-visible,label:focus-within{outline:2px solid var(--cinnabar-soft);outline-offset:2px}
+.swatch{width:14px;height:14px;border-radius:50%;margin-bottom:3px}
+.field{display:flex;gap:6px}
+.field input[type=text]{flex:1;min-width:0;background:var(--desk-2);border:1px solid var(--rule);border-radius:4px;color:var(--text);padding:7px 9px;font-family:"Ma Shan Zheng","Noto Serif SC",serif;font-size:20px}
+.row{display:flex;gap:6px;margin-top:6px}
+.meter{height:6px;border-radius:3px;background:var(--desk-3);overflow:hidden;margin-top:8px}
+.meter i{display:block;height:100%;width:100%;background:linear-gradient(90deg,#57504a,#0f0d0c);transition:width .15s}
+.chk{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);margin-top:8px;cursor:pointer}
+.chk input{accent-color:var(--cinnabar)}
+.act.armed{border-color:var(--cinnabar);background:#3a1b17}
+.act.on{border-color:var(--cinnabar);box-shadow:inset 0 -2px 0 var(--cinnabar)}
+.actions{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;margin-top:auto}
+.stage{min-height:0;min-width:0;display:grid;grid-template-rows:1fr auto;gap:10px;justify-items:center;align-items:center}
+.sheetwrap{width:100%;height:100%;min-height:0;display:grid;place-items:center}
+.sheet{position:relative;box-shadow:0 1px 0 #fff3 inset,0 18px 40px -12px #000c,0 2px 6px #0008;background:var(--paper)}
+.sheet canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+#ink{mix-blend-mode:multiply;touch-action:none;cursor:crosshair}
+.sheet.sealing #ink{cursor:copy}
+.hint{margin:0;color:var(--muted);font-size:13px;font-style:italic;text-align:center;text-wrap:balance;max-width:60ch}
+.hint kbd{font-family:inherit;font-style:normal;border:1px solid var(--rule);border-radius:3px;padding:0 4px;font-size:12px}
+.overlay{position:fixed;inset:0;background:#0d0c0bdd;display:grid;place-items:center;padding:24px 16px;z-index:10}
+.overlay figure{margin:0;display:flex;flex-direction:column;gap:12px;align-items:center;max-width:min(92vw,720px)}
+.overlay img{max-width:100%;max-height:72vh;box-shadow:0 10px 40px #000a}
+.overlay figcaption{color:var(--muted);font-size:14px;text-align:center}
+.overlay button{background:transparent;border:1px solid var(--rule);color:var(--text);padding:8px 18px;border-radius:4px;font:inherit;cursor:pointer}
+@media (max-width:760px){
+  .app{grid-template-columns:1fr;grid-template-rows:1fr auto;gap:10px;padding-block:10px}
+  .stage{grid-row:1}
+  .rail{grid-row:2;flex-direction:row;overflow-x:auto;overflow-y:hidden;gap:14px;padding:0 0 6px}
+  .brand{display:none}
+  .grp{flex:none;width:200px}
+  .actions{flex:none;width:200px;margin-top:0;align-self:end}
+  .hint{font-size:12px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <aside class="rail" aria-label="Brush controls">
+    <header class="brand">
+      <div class="chop" aria-hidden="true">墨</div>
+      <div><b>Xuan Paper Brush</b><small>Ink, water, and one breath</small></div>
+    </header>
+
+    <section class="grp">
+      <h2><span class="zh">笔</span>Brush</h2>
+      <div class="seg" data-k="size">
+        <button data-v="s"><span class="g">小楷</span><span class="e">Fine</span></button>
+        <button data-v="m"><span class="g">中楷</span><span class="e">Mid</span></button>
+        <button data-v="l"><span class="g">大楷</span><span class="e">Big</span></button>
+      </div>
+    </section>
+
+    <section class="grp">
+      <h2><span class="zh">墨</span>Ink</h2>
+      <div class="seg" data-k="ink">
+        <button data-v="jiao"><span class="swatch" style="background:#0a0807"></span><span class="g">焦</span><span class="e">Burnt</span></button>
+        <button data-v="nong"><span class="swatch" style="background:#241e19"></span><span class="g">浓</span><span class="e">Dense</span></button>
+        <button data-v="dan"><span class="swatch" style="background:#7a746d"></span><span class="g">淡</span><span class="e">Pale</span></button>
+        <button data-v="zhu"><span class="swatch" style="background:#b3261e"></span><span class="g">朱</span><span class="e">Red</span></button>
+      </div>
+      <div class="meter" title="Ink left in the brush"><i id="meter"></i></div>
+      <label class="chk"><input type="checkbox" id="autodip" checked> Dip before each stroke</label>
+      <div class="row"><button class="act" id="dip" style="flex:1"><span class="g">蘸墨</span><span class="e">Dip · Space</span></button></div>
+    </section>
+
+    <section class="grp">
+      <h2><span class="zh">格</span>Grid</h2>
+      <div class="seg" data-k="grid">
+        <button data-v="none"><span class="g">素</span><span class="e">Blank</span></button>
+        <button data-v="tian"><span class="g">田</span><span class="e">Tian</span></button>
+        <button data-v="mi"><span class="g">米</span><span class="e">Mi</span></button>
+        <button data-v="jiu"><span class="g">井</span><span class="e">Nine</span></button>
+      </div>
+      <div class="seg" data-k="cells" style="margin-top:6px">
+        <button data-v="1"><span class="g">一</span><span class="e">1 cell</span></button>
+        <button data-v="4"><span class="g">四</span><span class="e">4 cells</span></button>
+        <button data-v="9"><span class="g">九</span><span class="e">9 cells</span></button>
+      </div>
+    </section>
+
+    <section class="grp">
+      <h2><span class="zh">摹</span>Trace</h2>
+      <div class="field"><input type="text" id="trace" maxlength="9" value="永" aria-label="Characters to trace" placeholder="永和九年"></div>
+    </section>
+
+    <section class="grp">
+      <h2><span class="zh">印</span>Seal</h2>
+      <div class="field">
+        <input type="text" id="sealtxt" maxlength="4" value="墨戏" aria-label="Seal characters">
+        <button class="act" id="sealbtn" style="flex:none;width:64px"><span class="g">盖</span><span class="e">Stamp</span></button>
+      </div>
+    </section>
+
+    <div class="actions">
+      <button class="act" id="undo"><span class="g">悔</span><span class="e">Undo</span></button>
+      <button class="act" id="clear"><span class="g">净</span><span class="e">Clear</span></button>
+      <button class="act" id="save"><span class="g">存</span><span class="e">Save</span></button>
+    </div>
+  </aside>
+
+  <main class="stage" id="stage">
+    <div class="sheetwrap" id="wrap">
+      <div class="sheet" id="sheet">
+        <canvas id="paper"></canvas>
+        <canvas id="guide"></canvas>
+        <canvas id="ink"></canvas>
+      </div>
+    </div>
+    <p class="hint" id="hint">Slow strokes swell, fast strokes thin out and split into dry brush. Hold still to let ink pool. Flick at the end for a sharp tail. <kbd>⌘Z</kbd> undo · <kbd>Space</kbd> dip.</p>
+  </main>
+</div>
+
+<div class="overlay" id="saveOv" hidden>
+  <figure>
+    <img id="saveImg" alt="Your calligraphy on rice paper">
+    <figcaption>Right-click or long-press the image to save it.</figcaption>
+    <button id="closeSave">Close</button>
+  </figure>
+</div>
+
+<script>
+(() => {
+const $ = s => document.querySelector(s);
+const wrap = $('#wrap'), sheet = $('#sheet');
+const paperC = $('#paper'), guideC = $('#guide'), inkC = $('#ink');
+const pctx = paperC.getContext('2d'), gctx = guideC.getContext('2d'), ictx = inkC.getContext('2d');
+
+const st = { size:'m', ink:'nong', grid:'mi', cells:'1', trace:'永', seal:'墨戏', sealMode:false };
+const SIZES = { s:5.5, m:12, l:24 };               // brush radius at a 640px sheet
+const INKS = {
+  jiao:{ c:[8,6,5],     a:1.0,  load:1.0 },
+  nong:{ c:[22,18,15],  a:0.85, load:1.1 },
+  dan: { c:[45,42,40],  a:0.38, load:1.35 },
+  zhu: { c:[176,36,28], a:0.8,  load:1.1 },
+};
+let S = 0, dpr = 1, reservoir = 1;
+let undoStack = [];
+
+/* ---------- layout ---------- */
+function layout(){
+  const r = wrap.getBoundingClientRect();
+  const s = Math.max(200, Math.floor(Math.min(r.width, r.height) - 8));
+  if (s === S) return;
+  let old = null;
+  if (S) { old = document.createElement('canvas'); old.width = inkC.width; old.height = inkC.height; old.getContext('2d').drawImage(inkC,0,0); }
+  S = s; dpr = Math.min(window.devicePixelRatio || 1, 2);
+  sheet.style.width = sheet.style.height = S + 'px';
+  for (const c of [paperC, guideC, inkC]) { c.width = c.height = Math.round(S*dpr); }
+  paintPaper(); drawGuide();
+  ictx.setTransform(1,0,0,1,0,0);
+  if (old) ictx.drawImage(old, 0, 0, inkC.width, inkC.height);
+  ictx.setTransform(dpr,0,0,dpr,0,0);
+  ictx.lineCap = 'round'; ictx.lineJoin = 'round';
+  undoStack = [];
+}
+new ResizeObserver(layout).observe(wrap);
+
+/* ---------- rice paper ---------- */
+function paintPaper(){
+  const W = paperC.width;
+  pctx.setTransform(1,0,0,1,0,0);
+  pctx.fillStyle = '#f1ebdd'; pctx.fillRect(0,0,W,W);
+  const id = pctx.getImageData(0,0,W,W), d = id.data;
+  for (let i=0;i<d.length;i+=4){ const n=(Math.random()-.5)*9; d[i]+=n; d[i+1]+=n; d[i+2]+=n*1.2; }
+  pctx.putImageData(id,0,0);
+  for (let i=0;i<70;i++){           // cloudy mottling from uneven pulp
+    const x=Math.random()*W, y=Math.random()*W, r=(30+Math.random()*120)*dpr;
+    const g=pctx.createRadialGradient(x,y,0,x,y,r);
+    const warm = Math.random()<.5;
+    g.addColorStop(0, warm ? 'rgba(196,178,142,.07)' : 'rgba(255,252,244,.10)'); g.addColorStop(1,'rgba(0,0,0,0)');
+    pctx.fillStyle=g; pctx.fillRect(x-r,y-r,r*2,r*2);
+  }
+  pctx.lineCap='round';
+  const fibers = Math.round(W*W/1400);
+  for (let i=0;i<fibers;i++){       // bark fibres
+    const x=Math.random()*W, y=Math.random()*W, a=Math.random()*Math.PI*2, L=(3+Math.random()**2*38)*dpr;
+    const bend=(Math.random()-.5)*L*.6;
+    const light = Math.random()<.3;
+    pctx.strokeStyle = light ? `rgba(255,255,250,${.25+Math.random()*.3})` : `rgba(140,118,86,${.04+Math.random()*.12})`;
+    pctx.lineWidth=(.3+Math.random()*.7)*dpr;
+    pctx.beginPath(); pctx.moveTo(x,y);
+    pctx.quadraticCurveTo(x+Math.cos(a)*L/2-Math.sin(a)*bend, y+Math.sin(a)*L/2+Math.cos(a)*bend, x+Math.cos(a)*L, y+Math.sin(a)*L);
+    pctx.stroke();
+  }
+}
+
+/* ---------- guide grid + trace glyphs ---------- */
+function drawGuide(){
+  const n = Math.sqrt(+st.cells), cell = S/n;
+  gctx.setTransform(1,0,0,1,0,0); gctx.clearRect(0,0,guideC.width,guideC.height);
+  gctx.setTransform(dpr,0,0,dpr,0,0);
+  const chars = [...st.trace].slice(0, n*n);
+  gctx.textAlign='center'; gctx.textBaseline='middle';
+  gctx.font = `${cell*0.8}px "Ma Shan Zheng","Noto Serif SC",serif`;
+  // traditional order: columns right→left, each column top→bottom
+  chars.forEach((ch,k)=>{
+    const col = n-1-Math.floor(k/n), row = k%n;
+    const cx = col*cell+cell/2, cy = row*cell+cell/2 + cell*0.03;
+    gctx.fillStyle='rgba(179,38,30,.10)'; gctx.fillText(ch,cx,cy);
+    gctx.lineWidth=Math.max(.6,cell/420); gctx.strokeStyle='rgba(179,38,30,.28)'; gctx.strokeText(ch,cx,cy);
+  });
+  const m = 0.5;
+  gctx.strokeStyle='rgba(179,38,30,.55)'; gctx.lineWidth=1.4;
+  for (let i=0;i<n;i++) for (let j=0;j<n;j++) gctx.strokeRect(i*cell+m, j*cell+m, cell-2*m, cell-2*m);
+  if (st.grid==='none') return;
+  gctx.save(); gctx.setLineDash([5,5]); gctx.strokeStyle='rgba(179,38,30,.33)'; gctx.lineWidth=1;
+  for (let i=0;i<n;i++) for (let j=0;j<n;j++){
+    const x=i*cell, y=j*cell; gctx.beginPath();
+    if (st.grid==='jiu'){
+      for (const t of [1/3,2/3]){ gctx.moveTo(x+cell*t,y); gctx.lineTo(x+cell*t,y+cell); gctx.moveTo(x,y+cell*t); gctx.lineTo(x+cell,y+cell*t); }
+    } else {
+      gctx.moveTo(x+cell/2,y); gctx.lineTo(x+cell/2,y+cell); gctx.moveTo(x,y+cell/2); gctx.lineTo(x+cell,y+cell/2);
+      if (st.grid==='mi'){ gctx.moveTo(x,y); gctx.lineTo(x+cell,y+cell); gctx.moveTo(x+cell,y); gctx.lineTo(x,y+cell); }
+    }
+    gctx.stroke();
+  }
+  gctx.restore();
+}
+function refreshGuide(){
+  drawGuide();
+  if (document.fonts && st.trace) document.fonts.load(`40px "Ma Shan Zheng"`, st.trace).then(drawGuide).catch(()=>{});
+}
+
+/* ---------- brush engine ---------- */
+const NB = 60;
+let B = null, dwellTimer = null;
+const meter = $('#meter');
+const setMeter = v => { meter.style.width = Math.max(0,Math.min(1,v))*100+'%'; };
+
+function pushUndo(){
+  const c = document.createElement('canvas'); c.width=inkC.width; c.height=inkC.height;
+  c.getContext('2d').drawImage(inkC,0,0);
+  undoStack.push(c); if (undoStack.length>25) undoStack.shift();
+}
+function undo(){
+  const c = undoStack.pop(); if (!c) return;
+  ictx.setTransform(1,0,0,1,0,0); ictx.clearRect(0,0,inkC.width,inkC.height); ictx.drawImage(c,0,0);
+  ictx.setTransform(dpr,0,0,dpr,0,0);
+}
+
+function rgba(a){ const [r,g,b]=B.ink.c; return `rgba(${r},${g},${b},${a})`; }
+function meanInk(){ let s=0; for (const b of B.br) s+=Math.max(0,b.ink); return s/NB; }
+
+function segment(x0,y0,r0,x1,y1,r1){
+  const d = Math.hypot(x1-x0,y1-y0);
+  const drain = d/(S*1.25) * (1 + Math.min(B.v,3)*0.55) * (0.7 + 0.3*r1/B.base);
+  const m = meanInk();
+  if (m > .5 && B.ink.a > .5){      // wet halo bleeding into the fibres
+    ictx.strokeStyle = rgba(0.035*B.ink.a*m); ictx.lineWidth = r1*2.3;
+    ictx.beginPath(); ictx.moveTo(x0,y0); ictx.lineTo(x1,y1); ictx.stroke();
+  }
+  for (const b of B.br){
+    b.ink -= drain*b.dry;
+    const k = b.ink; if (k <= 0.02) continue;
+    const a = Math.min(1,k) * B.ink.a * (k<.3 ? .16 : .3);
+    ictx.lineWidth = Math.max(.5, r1*.32*b.w*(k<.3 ? .6 : 1));
+    ictx.strokeStyle = rgba(a);
+    ictx.beginPath();
+    ictx.moveTo(x0+b.x*r0, y0+b.y*r0);
+    ictx.lineTo(x1+b.x*r1+(Math.random()-.5)*.4, y1+b.y*r1+(Math.random()-.5)*.4);
+    ictx.stroke();
+  }
+  setMeter(meanInk()/B.ink.load);
+}
+function dab(x,y,r,alpha){
+  for (const b of B.br){
+    if (b.ink <= 0.05) continue;
+    ictx.fillStyle = rgba(Math.min(1,b.ink)*B.ink.a*alpha);
+    ictx.beginPath(); ictx.arc(x+b.x*r, y+b.y*r, Math.max(.6,r*.34*b.w), 0, Math.PI*2); ictx.fill();
+    b.ink -= 0.004;
+  }
+}
+
+function pos(e){ const r = inkC.getBoundingClientRect(); return [e.clientX-r.left, e.clientY-r.top]; }
+
+function startStroke(e){
+  const [x,y] = pos(e);
+  pushUndo();
+  if (st.sealMode){ stampSeal(x,y); return; }
+  const ink = INKS[st.ink];
+  if ($('#autodip').checked) reservoir = 1;
+  const base = SIZES[st.size]*S/640;
+  const br = [];
+  for (let i=0;i<NB;i++){
+    const a=Math.random()*Math.PI*2, rr=Math.sqrt(Math.random());
+    br.push({ x:Math.cos(a)*rr, y:Math.sin(a)*rr*.82, w:.55+Math.random()*.7,
+              ink: ink.load*reservoir*(.8+Math.random()*.35), dry:.45+Math.random()*1.2 });
+  }
+  const f = pressureFactor(e, 0);
+  B = { ink, base, br, x, y, r: base*f*.7, t:e.timeStamp, v:0, vx:0, vy:0, still:performance.now(), type:e.pointerType };
+  dab(x,y,B.r*1.05,.35);           // brush touching down
+  inkC.setPointerCapture(e.pointerId);
+  clearInterval(dwellTimer);
+  dwellTimer = setInterval(()=>{   // resting brush lets ink spread
+    if (!B || performance.now()-B.still < 110) return;
+    B.r = Math.min(B.r*1.025 + .15, B.base*1.55);
+    dab(B.x,B.y,B.r,.07);
+    setMeter(meanInk()/B.ink.load);
+  }, 45);
+}
+function pressureFactor(e, v){
+  if (e.pointerType==='pen' && e.pressure>0) return .18 + e.pressure*1.3;
+  return Math.max(.28, Math.min(1.3, 1.3 - v*.42));
+}
+function moveStroke(e){
+  if (!B) return;
+  const evs = e.getCoalescedEvents ? e.getCoalescedEvents() : [e];
+  for (const ev of (evs.length?evs:[e])){
+    const [x,y] = pos(ev);
+    const dx=x-B.x, dy=y-B.y, d=Math.hypot(dx,dy);
+    if (d < .4) continue;
+    const dt = Math.max(1, ev.timeStamp-B.t);
+    const v = d/dt;
+    B.v = B.v*.75 + v*.25;
+    B.vx = B.vx*.6 + dx/dt*.4; B.vy = B.vy*.6 + dy/dt*.4;
+    const target = B.base*pressureFactor(ev, B.v);
+    const steps = Math.max(1, Math.ceil(d/Math.max(1.5, B.r*.5)));
+    let px=B.x, py=B.y, pr=B.r;
+    for (let i=1;i<=steps;i++){
+      const t=i/steps, nx=B.x+dx*t, ny=B.y+dy*t;
+      const nr = pr + (target-pr)*.16;
+      segment(px,py,pr,nx,ny,nr);
+      px=nx; py=ny; pr=nr;
+    }
+    B.x=x; B.y=y; B.r=pr; B.t=ev.timeStamp; B.still=performance.now();
+  }
+}
+function endStroke(){
+  clearInterval(dwellTimer);
+  if (!B) return;
+  const sp = Math.hypot(B.vx,B.vy);
+  if (sp > .55 && performance.now()-B.still < 60){   // flick → tapered tail (出锋)
+    const ux=B.vx/sp, uy=B.vy/sp; let x=B.x, y=B.y, r=B.r;
+    const step = Math.min(sp*9, B.base*1.4);
+    for (let i=0;i<12 && r>.35;i++){
+      const nx=x+ux*step, ny=y+uy*step, nr=r*.7;
+      segment(x,y,r,nx,ny,nr); x=nx; y=ny; r=nr;
+    }
+  }
+  reservoir = Math.max(0, meanInk()/B.ink.load);
+  setMeter(reservoir);
+  B = null;
+}
+
+inkC.addEventListener('pointerdown', e=>{ e.preventDefault(); startStroke(e); });
+inkC.addEventListener('pointermove', moveStroke);
+inkC.addEventListener('pointerup', endStroke);
+inkC.addEventListener('pointercancel', endStroke);
+inkC.addEventListener('lostpointercapture', endStroke);
+
+/* ---------- seal ---------- */
+function stampSeal(x,y){
+  const chars = [...(st.seal||'印')].slice(0,4);
+  const n = chars.length;
+  const size = S*(n<=1 ? .075 : n===2 ? .09 : .11);
+  const w = n===2 ? size*.62 : size, h = size;
+  const pad = 4, c = document.createElement('canvas');
+  c.width = Math.ceil((w+pad*2)*dpr); c.height = Math.ceil((h+pad*2)*dpr);
+  const g = c.getContext('2d'); g.scale(dpr,dpr); g.translate(pad,pad);
+  const j = () => (Math.random()-.5)*size*.03;
+  g.fillStyle = 'rgba(178,32,26,.93)';
+  g.beginPath(); g.moveTo(j(),j()); g.lineTo(w+j(),j()); g.lineTo(w+j(),h+j()); g.lineTo(j(),h+j()); g.closePath(); g.fill();
+  g.globalCompositeOperation = 'destination-out';
+  g.fillStyle = '#000'; g.textAlign='center'; g.textBaseline='middle';
+  const cells = n===1 ? [[.5,.5,.78]] : n===2 ? [[.5,.27,.4],[.5,.73,.4]]
+    : n===3 ? [[.74,.5,.72,'tall'],[.27,.27,.4],[.27,.73,.4]] : [[.74,.27,.4],[.74,.73,.4],[.27,.27,.4],[.27,.73,.4]];
+  chars.forEach((ch,i)=>{
+    const [cx,cy,fs,tall] = cells[i];
+    g.save(); g.translate(cx*w, cy*h);
+    if (tall) g.scale(1,1.9);
+    g.font = `900 ${fs*size}px "Noto Serif SC","Ma Shan Zheng",serif`;
+    g.fillText(ch,0,0); g.restore();
+  });
+  for (let i=0;i<Math.round(size*1.2);i++){   // worn stone and uneven paste
+    g.globalAlpha = .3+Math.random()*.7;
+    g.beginPath(); g.arc(Math.random()*w, Math.random()*h, Math.random()*size*.018+.3, 0, Math.PI*2); g.fill();
+  }
+  ictx.save(); ictx.translate(x,y); ictx.rotate((Math.random()-.5)*.05);
+  ictx.drawImage(c, -(w/2+pad), -(h/2+pad), w+pad*2, h+pad*2);
+  ictx.restore();
+  setSealMode(false);
+}
+function setSealMode(on){
+  st.sealMode = on; sheet.classList.toggle('sealing', on); $('#sealbtn').classList.toggle('on', on);
+}
+$('#sealbtn').addEventListener('click', ()=>{
+  const want = !st.sealMode;
+  if (want && document.fonts) document.fonts.load(`900 40px "Noto Serif SC"`, st.seal).catch(()=>{});
+  setSealMode(want);
+});
+$('#sealtxt').addEventListener('input', e=>{ st.seal = e.target.value.trim(); });
+
+/* ---------- controls ---------- */
+document.querySelectorAll('.seg').forEach(seg=>{
+  const k = seg.dataset.k;
+  const sync = () => seg.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed', String(b.dataset.v===st[k])));
+  seg.addEventListener('click', e=>{
+    const b = e.target.closest('button'); if (!b) return;
+    st[k] = b.dataset.v; sync();
+    if (k==='grid' || k==='cells') refreshGuide();
+    if (k==='ink') { reservoir = 1; setMeter(1); }
+    try { localStorage.setItem('xuan-'+k, st[k]); } catch(_){}
+  });
+  try { const v = localStorage.getItem('xuan-'+k); if (v && seg.querySelector(`[data-v="${v}"]`)) st[k]=v; } catch(_){}
+  sync();
+});
+$('#trace').addEventListener('input', e=>{ st.trace = e.target.value.trim(); refreshGuide(); });
+const dip = () => { reservoir = 1; setMeter(1); };
+$('#dip').addEventListener('click', dip);
+$('#undo').addEventListener('click', undo);
+
+let clearArmed = null;
+$('#clear').addEventListener('click', e=>{
+  const btn = e.currentTarget;
+  if (!clearArmed){
+    btn.classList.add('armed'); btn.querySelector('.e').textContent='Tap again';
+    clearArmed = setTimeout(()=>{ btn.classList.remove('armed'); btn.querySelector('.e').textContent='Clear'; clearArmed=null; }, 2500);
+    return;
+  }
+  clearTimeout(clearArmed); clearArmed=null; btn.classList.remove('armed'); btn.querySelector('.e').textContent='Clear';
+  pushUndo();
+  ictx.setTransform(1,0,0,1,0,0); ictx.clearRect(0,0,inkC.width,inkC.height); ictx.setTransform(dpr,0,0,dpr,0,0);
+  dip();
+});
+
+$('#save').addEventListener('click', ()=>{
+  const c = document.createElement('canvas'); c.width=inkC.width; c.height=inkC.height;
+  const g = c.getContext('2d');
+  g.drawImage(paperC,0,0); g.globalCompositeOperation='multiply'; g.drawImage(inkC,0,0);
+  $('#saveImg').src = c.toDataURL('image/png');
+  $('#saveOv').hidden = false;
+});
+$('#closeSave').addEventListener('click', ()=>{ $('#saveOv').hidden = true; });
+$('#saveOv').addEventListener('click', e=>{ if (e.target.id==='saveOv') e.currentTarget.hidden = true; });
+
+window.addEventListener('keydown', e=>{
+  if (e.target.tagName==='INPUT') return;
+  if ((e.metaKey||e.ctrlKey) && e.key.toLowerCase()==='z'){ e.preventDefault(); undo(); }
+  else if (e.code==='Space'){ e.preventDefault(); dip(); }
+  else if (e.key==='Escape'){ setSealMode(false); $('#saveOv').hidden = true; }
+});
+
+layout(); refreshGuide(); setMeter(1);
+if (document.fonts) document.fonts.ready.then(drawGuide);
+})();
+</script>
+</body>
+</html>
