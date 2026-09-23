@@ -55,7 +55,7 @@ button:focus-visible,input:focus-visible,label:focus-within{outline:2px solid va
 .chk input{accent-color:var(--cinnabar)}
 .act.armed{border-color:var(--cinnabar);background:#3a1b17}
 .act.on{border-color:var(--cinnabar);box-shadow:inset 0 -2px 0 var(--cinnabar)}
-.actions{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;margin-top:auto}
+.actions{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin-top:auto}
 .stage{min-height:0;min-width:0;display:grid;grid-template-rows:1fr auto;gap:10px;justify-items:center;align-items:center}
 .sheetwrap{width:100%;height:100%;min-height:0;display:grid;place-items:center}
 .sheet{position:relative;box-shadow:0 1px 0 #fff3 inset,0 18px 40px -12px #000c,0 2px 6px #0008;background:var(--paper)}
@@ -86,7 +86,8 @@ button:focus-visible,input:focus-visible,label:focus-within{outline:2px solid va
     scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch;margin-inline:calc(-1 * max(16px,env(safe-area-inset-left)));padding-inline:max(16px,env(safe-area-inset-left));scrollbar-width:none}
   .rail::-webkit-scrollbar{display:none}
   .grp,.actions{flex:none;width:min(78vw,240px);max-width:none;scroll-snap-align:start}
-  .actions{order:-1;align-self:end}
+  .rail{align-items:flex-start}
+  .actions{order:-1;align-self:flex-start;margin-top:22px}
   .grp h2{margin-bottom:6px}
   .seg button .g,.act .g{font-size:20px}
 }
@@ -128,7 +129,6 @@ button:focus-visible,input:focus-visible,label:focus-within{outline:2px solid va
       </div>
       <div class="meter" title="Ink left in the brush"><i id="meter"></i></div>
       <label class="chk"><input type="checkbox" id="autodip" checked> Dip before each stroke</label>
-      <div class="row"><button class="act" id="dip" style="flex:1"><span class="g">蘸墨</span><span class="e">Dip · Space</span></button></div>
     </section>
 
     <section class="grp">
@@ -161,6 +161,7 @@ button:focus-visible,input:focus-visible,label:focus-within{outline:2px solid va
 
     <div class="actions">
       <button class="act" id="undo"><span class="g">悔</span><span class="e">Undo</span></button>
+      <button class="act" id="dip"><span class="g">蘸</span><span class="e">Dip</span></button>
       <button class="act" id="clear"><span class="g">净</span><span class="e">Clear</span></button>
       <button class="act" id="save"><span class="g">存</span><span class="e">Save</span></button>
     </div>
