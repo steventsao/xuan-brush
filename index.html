@@ -2,7 +2,14 @@
 <html lang="zh-Hans">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Brush">
+<meta name="theme-color" content="#1b1917">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
 <style>html,body{margin:0}[hidden]{display:none!important}</style>
 <title>Xuan Paper Brush</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -15,9 +22,14 @@
   color-scheme:dark;
 }
 html,body{height:100%}
-body{background:var(--desk);color:var(--text);font-family:"Spectral",Georgia,"Times New Roman",serif;overflow:hidden}
+body{background:var(--desk);color:var(--text);font-family:"Spectral",Georgia,"Times New Roman",serif;overflow:hidden;
+  position:fixed;inset:0;overscroll-behavior:none;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent;-webkit-text-size-adjust:100%}
 *{box-sizing:border-box}
-.app{height:100%;display:grid;grid-template-columns:232px 1fr;gap:20px;padding-inline:16px;padding-block:16px}
+input{-webkit-user-select:text;user-select:text}
+button,label,input{touch-action:manipulation}
+.app{height:100%;height:100dvh;display:grid;grid-template-columns:232px 1fr;gap:20px;
+  padding-left:max(16px,env(safe-area-inset-left));padding-right:max(16px,env(safe-area-inset-right));
+  padding-top:max(14px,env(safe-area-inset-top));padding-bottom:max(14px,env(safe-area-inset-bottom))}
 .rail{display:flex;flex-direction:column;gap:18px;overflow-y:auto;min-height:0;padding-right:4px;scrollbar-width:thin}
 .brand{display:flex;gap:12px;align-items:center;padding-bottom:14px;border-bottom:1px solid var(--rule)}
 .brand .chop{width:42px;height:42px;flex:none;display:grid;place-items:center;background:var(--cinnabar);color:#f6e9e2;font-family:"Ma Shan Zheng","Noto Serif SC",serif;font-size:30px;line-height:1;border-radius:3px;transform:rotate(-3deg)}
@@ -26,10 +38,10 @@ body{background:var(--desk);color:var(--text);font-family:"Spectral",Georgia,"Ti
 .grp h2{margin:0 0 8px;font-weight:400;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);display:flex;gap:8px;align-items:baseline}
 .grp h2 .zh{font-family:"Ma Shan Zheng","Noto Serif SC",serif;font-size:19px;letter-spacing:0;color:var(--text);text-transform:none}
 .seg{display:flex;gap:4px}
-.seg button,.act{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:1px;padding:7px 4px 6px;background:transparent;color:var(--text);border:1px solid var(--rule);border-radius:4px;cursor:pointer;font:inherit}
+.seg button,.act{flex:1;min-width:0;min-height:48px;justify-content:center;display:flex;flex-direction:column;align-items:center;gap:1px;padding:7px 4px 6px;background:transparent;color:var(--text);border:1px solid var(--rule);border-radius:4px;cursor:pointer;font:inherit}
 .seg button .g,.act .g{font-family:"Ma Shan Zheng","Noto Serif SC",serif;font-size:22px;line-height:1.05}
 .seg button .e,.act .e{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
-.seg button:hover,.act:hover{background:var(--desk-2)}
+@media (hover:hover){.seg button:hover,.act:hover{background:var(--desk-2)}}
 .seg button[aria-pressed="true"]{background:var(--desk-3);border-color:var(--cinnabar);box-shadow:inset 0 -2px 0 var(--cinnabar)}
 .seg button[aria-pressed="true"] .e{color:var(--cinnabar-soft)}
 button:focus-visible,input:focus-visible,label:focus-within{outline:2px solid var(--cinnabar-soft);outline-offset:2px}
@@ -47,24 +59,43 @@ button:focus-visible,input:focus-visible,label:focus-within{outline:2px solid va
 .stage{min-height:0;min-width:0;display:grid;grid-template-rows:1fr auto;gap:10px;justify-items:center;align-items:center}
 .sheetwrap{width:100%;height:100%;min-height:0;display:grid;place-items:center}
 .sheet{position:relative;box-shadow:0 1px 0 #fff3 inset,0 18px 40px -12px #000c,0 2px 6px #0008;background:var(--paper)}
-.sheet canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+.sheet canvas{position:absolute;inset:0;width:100%;height:100%;display:block;-webkit-user-select:none;-webkit-touch-callout:none}
 #ink{mix-blend-mode:multiply;touch-action:none;cursor:crosshair}
 .sheet.sealing #ink{cursor:copy}
 .hint{margin:0;color:var(--muted);font-size:13px;font-style:italic;text-align:center;text-wrap:balance;max-width:60ch}
 .hint kbd{font-family:inherit;font-style:normal;border:1px solid var(--rule);border-radius:3px;padding:0 4px;font-size:12px}
 .overlay{position:fixed;inset:0;background:#0d0c0bdd;display:grid;place-items:center;padding:24px 16px;z-index:10}
 .overlay figure{margin:0;display:flex;flex-direction:column;gap:12px;align-items:center;max-width:min(92vw,720px)}
-.overlay img{max-width:100%;max-height:72vh;box-shadow:0 10px 40px #000a}
+.overlay img{-webkit-touch-callout:default;-webkit-user-select:auto;max-width:100%;max-height:72vh;box-shadow:0 10px 40px #000a}
 .overlay figcaption{color:var(--muted);font-size:14px;text-align:center}
 .overlay button{background:transparent;border:1px solid var(--rule);color:var(--text);padding:8px 18px;border-radius:4px;font:inherit;cursor:pointer}
-@media (max-width:760px){
-  .app{grid-template-columns:1fr;grid-template-rows:1fr auto;gap:10px;padding-block:10px}
-  .stage{grid-row:1}
-  .rail{grid-row:2;flex-direction:row;overflow-x:auto;overflow-y:hidden;gap:14px;padding:0 0 6px}
+/* portrait (iPad upright, iPhone): paper on top, tools underneath */
+@media (orientation:portrait), (max-width:760px){
+  .app{grid-template-columns:1fr;grid-template-rows:1fr auto;gap:12px}
+  .stage{grid-row:1;grid-template-rows:1fr}
+  .hint{display:none}
+  .rail{grid-row:2;flex-direction:row;flex-wrap:wrap;overflow:visible;gap:14px 18px;padding:0;justify-content:center}
   .brand{display:none}
-  .grp{flex:none;width:200px}
-  .actions{flex:none;width:200px;margin-top:0;align-self:end}
-  .hint{font-size:12px}
+  .grp{flex:1 1 220px;max-width:300px}
+  .actions{flex:1 1 220px;max-width:300px;margin-top:0;align-self:end}
+}
+/* phone: one swipeable strip of tools */
+@media (max-width:600px){
+  .app{padding-top:max(8px,env(safe-area-inset-top));padding-bottom:max(8px,env(safe-area-inset-bottom));gap:8px}
+  .rail{flex-wrap:nowrap;justify-content:flex-start;overflow-x:auto;overflow-y:hidden;gap:14px;padding-bottom:4px;
+    scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch;margin-inline:calc(-1 * max(16px,env(safe-area-inset-left)));padding-inline:max(16px,env(safe-area-inset-left));scrollbar-width:none}
+  .rail::-webkit-scrollbar{display:none}
+  .grp,.actions{flex:none;width:min(78vw,240px);max-width:none;scroll-snap-align:start}
+  .actions{order:-1;align-self:end}
+  .grp h2{margin-bottom:6px}
+  .seg button .g,.act .g{font-size:20px}
+}
+/* landscape phone: short screen, slimmer rail */
+@media (orientation:landscape) and (max-height:500px){
+  .app{grid-template-columns:200px 1fr;gap:14px}
+  .rail{gap:12px}
+  .brand,.hint{display:none}
+  .actions{margin-top:0}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
@@ -143,15 +174,15 @@ button:focus-visible,input:focus-visible,label:focus-within{outline:2px solid va
         <canvas id="ink"></canvas>
       </div>
     </div>
-    <p class="hint" id="hint">Slow strokes swell, fast strokes thin out and split into dry brush. Hold still to let ink pool. Flick at the end for a sharp tail. <kbd>⌘Z</kbd> undo · <kbd>Space</kbd> dip.</p>
+    <p class="hint" id="hint">Apple Pencil: press harder or tilt for a wider stroke. Two-finger tap undoes. Slow strokes swell, fast strokes thin out and split into dry brush. Hold still to let ink pool. Flick at the end for a sharp tail. <kbd>⌘Z</kbd> undo · <kbd>Space</kbd> dip.</p>
   </main>
 </div>
 
 <div class="overlay" id="saveOv" hidden>
   <figure>
     <img id="saveImg" alt="Your calligraphy on rice paper">
-    <figcaption>Right-click or long-press the image to save it.</figcaption>
-    <button id="closeSave">Close</button>
+    <figcaption>Long-press the image to save it, or use Share → Save Image.</figcaption>
+    <div style="display:flex;gap:10px"><button id="shareBtn" hidden>Share / Save to Photos</button><button id="closeSave">Close</button></div>
   </figure>
 </div>
 
@@ -259,7 +290,8 @@ function refreshGuide(){
 }
 
 /* ---------- brush engine ---------- */
-const NB = 60;
+const COARSE = matchMedia('(pointer:coarse)').matches;
+const NB = COARSE ? 46 : 60;   // fewer bristles on phones/tablets keeps 120–240Hz Pencil input smooth
 let B = null, dwellTimer = null;
 const meter = $('#meter');
 const setMeter = v => { meter.style.width = Math.max(0,Math.min(1,v))*100+'%'; };
@@ -336,7 +368,12 @@ function startStroke(e){
   }, 45);
 }
 function pressureFactor(e, v){
-  if (e.pointerType==='pen' && e.pressure>0) return .18 + e.pressure*1.3;
+  if (e.pointerType==='pen' && e.pressure>0){
+    let f = .16 + Math.pow(e.pressure, .8)*1.35;
+    const alt = e.altitudeAngle;                       // Safari: π/2 upright → 0 flat
+    if (alt != null && alt < 1.2) f *= 1 + (1.2-alt)*.6;
+    return Math.min(f, 1.9);
+  }
   return Math.max(.28, Math.min(1.3, 1.3 - v*.42));
 }
 function moveStroke(e){
@@ -379,11 +416,47 @@ function endStroke(){
   B = null;
 }
 
-inkC.addEventListener('pointerdown', e=>{ e.preventDefault(); startStroke(e); });
-inkC.addEventListener('pointermove', moveStroke);
-inkC.addEventListener('pointerup', endStroke);
-inkC.addEventListener('pointercancel', endStroke);
-inkC.addEventListener('lostpointercapture', endStroke);
+/* one brush at a time; Pencil wins over palm; two-finger tap = undo */
+let activeId = null, penSeen = false;
+const touches = new Map(); let twoFinger = null;
+inkC.addEventListener('pointerdown', e=>{
+  e.preventDefault();
+  if (e.pointerType==='pen') penSeen = true;
+  if (e.pointerType==='touch'){
+    touches.set(e.pointerId, performance.now());
+    if (penSeen) return;                               // palm resting while drawing with Pencil
+    if (touches.size===2 && activeId!==null){
+      // second finger landed: cancel the stroke the first finger began, arm undo gesture
+      if (B && performance.now()-B.t0 < 350){ clearInterval(dwellTimer); B=null; undo(); }
+      else endStroke();
+      activeId = null; twoFinger = { t: performance.now() };
+      return;
+    }
+    if (touches.size>1) return;
+  }
+  if (activeId!==null) return;
+  activeId = e.pointerId;
+  startStroke(e);
+  if (B) B.t0 = performance.now();
+}, { passive:false });
+inkC.addEventListener('pointermove', e=>{ if (e.pointerId===activeId) moveStroke(e); });
+function release(e){
+  if (e.pointerType==='touch'){
+    touches.delete(e.pointerId);
+    if (twoFinger && touches.size===0){
+      if (performance.now()-twoFinger.t < 400) undo();
+      twoFinger = null;
+    }
+  }
+  if (e.pointerId===activeId){ endStroke(); activeId = null; }
+}
+inkC.addEventListener('pointerup', release);
+inkC.addEventListener('pointercancel', release);
+// iOS: stop pinch-zoom, double-tap zoom and the text loupe on the paper
+for (const t of ['gesturestart','gesturechange','gestureend']) document.addEventListener(t, e=>e.preventDefault(), { passive:false });
+inkC.addEventListener('touchstart', e=>e.preventDefault(), { passive:false });
+inkC.addEventListener('touchmove', e=>e.preventDefault(), { passive:false });
+inkC.addEventListener('contextmenu', e=>e.preventDefault());
 
 /* ---------- seal ---------- */
 function stampSeal(x,y){
@@ -466,6 +539,14 @@ $('#save').addEventListener('click', ()=>{
   g.drawImage(paperC,0,0); g.globalCompositeOperation='multiply'; g.drawImage(inkC,0,0);
   $('#saveImg').src = c.toDataURL('image/png');
   $('#saveOv').hidden = false;
+  c.toBlob(b=>{
+    lastFile = b && new File([b], 'calligraphy.png', { type:'image/png' });
+    $('#shareBtn').hidden = !(lastFile && navigator.canShare && navigator.canShare({ files:[lastFile] }));
+  }, 'image/png');
+});
+let lastFile = null;
+$('#shareBtn').addEventListener('click', ()=>{
+  if (lastFile) navigator.share({ files:[lastFile], title:'Calligraphy' }).catch(()=>{});
 });
 $('#closeSave').addEventListener('click', ()=>{ $('#saveOv').hidden = true; });
 $('#saveOv').addEventListener('click', e=>{ if (e.target.id==='saveOv') e.currentTarget.hidden = true; });
