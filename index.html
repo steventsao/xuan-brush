@@ -359,7 +359,8 @@ function startStroke(e){
   const f = pressureFactor(e, 0);
   B = { ink, base, br, x, y, r: base*f*.7, t:e.timeStamp, v:0, vx:0, vy:0, still:performance.now(), type:e.pointerType };
   dab(x,y,B.r*1.05,.35);           // brush touching down
-  inkC.setPointerCapture(e.pointerId);
+  B.t0 = performance.now();
+  try { inkC.setPointerCapture(e.pointerId); } catch(_){}
   clearInterval(dwellTimer);
   dwellTimer = setInterval(()=>{   // resting brush lets ink spread
     if (!B || performance.now()-B.still < 110) return;
@@ -438,7 +439,6 @@ inkC.addEventListener('pointerdown', e=>{
   if (activeId!==null) return;
   activeId = e.pointerId;
   startStroke(e);
-  if (B) B.t0 = performance.now();
 }, { passive:false });
 inkC.addEventListener('pointermove', e=>{ if (e.pointerId===activeId) moveStroke(e); });
 function release(e){
